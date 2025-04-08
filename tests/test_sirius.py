@@ -1,4 +1,3 @@
-#import pytest
 from fastapi.testclient import TestClient
 from sirius.main import app
 
@@ -6,6 +5,7 @@ client = TestClient(app)
 
 def test_post_get_compounds():
     # sample payload for post request
+    # TODO: fix the format of the payload with new MSMS fields
     payload = {
         "msms": {
             "ion1": 1,
