@@ -1,0 +1,12 @@
+Call Sirius in CLI from Python.
+	- parse msms string
+	- create mgf file
+	- run CLI command 
+	- parse output into list of compounds
+
+Push Docker image to ECR.
+Set up ECS Task Definition with Docker image.
+Set up ECS Service using the task definition.
+Create Elastic Load Balancer to map domain name.
+Write tests.
+
