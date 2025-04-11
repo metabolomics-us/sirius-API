@@ -80,7 +80,10 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
     ]
     subprocess.run(command, check=True)
 
-    os.remove(mgf_file_path) # delete temporary MGF file as it is no longer needed after being passed to sirius command
+    try:
+        os.remove(mgf_file_path) # delete temporary MGF file as it is no longer needed after being passed to sirius command
+    except FileNotFoundError:
+        pass
 
     # absolute path of formulas identified tsv file, should not change
     return "/code/query-results/sirius-summary/formula_identifications.tsv"
