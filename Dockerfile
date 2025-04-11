@@ -7,6 +7,7 @@ RUN apt-get install -y python3-venv
 RUN apt-get install -y python3
 RUN apt-get install -y unzip
 RUN apt-get install -y curl
+RUN apt-get install -y vim
 
 # set working directory
 WORKDIR /code
