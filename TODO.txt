@@ -1,3 +1,6 @@
+TODO:
+	- add charge to mgf file as input  
+
 Call Sirius in CLI from Python.
 	- parse msms string
 	- create mgf file
@@ -10,3 +13,7 @@ Set up ECS Service using the task definition.
 Create Elastic Load Balancer to map domain name.
 Write tests.
 
+Important notes:
+	- Boot up docker container for testing using docker run -p 80:80 --name sirius sirius_wrapper
+	- Exec into docker container with docker exec -it <container_ID> /bin/bash/
+	- Sirius structure command does not work
