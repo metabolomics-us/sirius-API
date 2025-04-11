@@ -2,6 +2,7 @@ import uvicorn
 import tempfile
 import subprocess
 import os
+import shutil
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -14,7 +15,7 @@ class PCM(BaseModel):
 
 class Peak(BaseModel):
     mz: float # m/z: mass to charge ratio
-    intensity: int # intensity
+    intensity: float # intensity
 
 class MSMS(BaseModel):
     peaks: List[Peak] # list of peaks, each with mz and intensity
@@ -46,6 +47,8 @@ def parse_msms_string(msms_str: str) -> MSMS:
 def create_mgf_file(msms: MSMS, pcm: PCM) -> str:
     mgf_content = ["BEGIN IONS"]
     mgf_content.append(f"PEPMASS={pcm.pre_cursor_mass}")
+    # TODO: ADJUST THIS TEMPORARY SOLUTION HARDCODING CHARGE to 1+
+    mgf_content.append(f"CHARGE=1+")
     for peak in msms.peaks:
         mgf_content.append(f"{peak.mz} {peak.intensity}")
     mgf_content.append("END IONS")
@@ -60,8 +63,8 @@ def create_mgf_file(msms: MSMS, pcm: PCM) -> str:
 def run_sirius_CLI(mgf_file_path: str) -> str:
 # if we want to change output directories, change function signature to:
 # def run_sirius_CLI(mgf_file_path: str, output_dir: str, summary_dir: str) -> str:
-    output_dir = "sirius-output"
-    summary_dir = "sirius-summary"
+    output_dir = "/code/query-results/sirius-output"
+    summary_dir = "/code/query-results/sirius-summary"
 
     command = [
         "sirius",
@@ -70,7 +73,7 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
         "formula",
         "-p", "orbitrap",
         "fingerprint",
-        "structure",
+        # "structure", # command does not work?
         "compound-classes",
         "write-summaries",
         "--output", summary_dir 
@@ -79,6 +82,11 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
 
     os.remove(mgf_file_path) # delete temporary MGF file as it is no longer needed after being passed to sirius command
 
+    # absolute path of formulas identified tsv file, should not change
+    return "/code/query-results/sirius-summary/formula_identifications.tsv"
+
+    '''
+    Incorrect directory structure, old code
     # grab the base name of the mgf file, remove .mgf extension
     base = os.path.splitext(os.path.basename(mgf_file_path))[0] 
 
@@ -86,20 +94,28 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
     # half-hardcoded path, this might need to be changed, TODO test this feature 
     tsv_path = os.path.join(summary_dir, f"0_{base}_FEATURE1", "formula_candidates.tsv")
     return tsv_path
+    '''
 
 
 
 # takes in the formula_candidates.tsv file and parses the compounds into a list of strings
 def parse_sirius_output(formula_candidates_tsv_path: str) -> list[str]:
-    candidates_list = []
+    compound_list = []
 
     with open(formula_candidates_tsv_path, "r") as file:
         lines = file.readlines()
         for line in lines[1:11]: # skip header line
             values = line.strip().split("\t") # strip \n and split by tabs, list of values per line
-            candidates_list.append(values[1]) # values at index 1 hold molecular formula
+            compound_list.append(values[1]) # values at index 1 hold molecular formula
 
-    return candidates_list
+    # remove generated files by sirius
+    try:
+        os.remove("/code/query-results/sirius-output.sirius")
+    except FileNotFoundError:
+        pass
+    shutil.rmtree("/code/query-results/sirius-summary", ignore_errors=True)
+
+    return compound_list
 
 
 
@@ -111,17 +127,11 @@ def get_compounds(msms_str: str, pcm_str: str) -> list[str]:
     msms = parse_msms_string(msms_str)
     pcm = PCM(pre_cursor_mass=float(pcm_str))
     mgf = create_mgf_file(msms, pcm)
-    candidates = run_sirius_CLI(mgf)
-    topten = parse_sirius_output(candidates)
-    return topten
+    candidates_tsv = run_sirius_CLI(mgf)
+    compound_list = parse_sirius_output(candidates_tsv)
+    return compound_list
 
-    '''
-    dummy_compounds = [
-        "H2O", "CO2", "H2", "O2", "H2SO4",
-        "NaCl", "CH4", "C2H6", "C3H8", "KCl"
-    ]
-    return dummy_compounds
-    '''
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=80, log_level="info")
