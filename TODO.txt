@@ -17,3 +17,4 @@ Important notes:
 	- Boot up docker container for testing using docker run -p 80:80 --name sirius sirius_wrapper
 	- Exec into docker container with docker exec -it <container_ID> /bin/bash/
 	- Sirius structure command does not work
+	- Pytest passed inside docker image! Use python -m pytest
