@@ -7,6 +7,10 @@ Call Sirius in CLI from Python.
 	- run CLI command 
 	- parse output into list of compounds
 
+Make API REST compliant:
+	- cacheability?
+
+
 Push Docker image to ECR.
 Set up ECS Task Definition with Docker image.
 Set up ECS Service using the task definition.
