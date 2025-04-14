@@ -3,7 +3,7 @@ import tempfile
 import subprocess
 import os
 import shutil
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
@@ -20,6 +20,18 @@ class Peak(BaseModel):
 class MSMS(BaseModel):
     peaks: List[Peak] # list of peaks, each with mz and intensity
 
+'''
+# Can use this as the input payload for the post request so that post requests can be made in JSON format
+class CompoundRequest(BaseModel):
+    msms_str: str
+    pcm_str: str
+
+# And this as a return type
+class CompoundReturn(BaseModel):
+    compounds: list[str]
+'''
+
+
 origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
@@ -35,9 +47,13 @@ app.add_middleware(
 def parse_msms_string(msms_str: str) -> MSMS:
     temp_peaks: List[Peak] = []
     for pair in msms_str.strip().split():
-        mz_str, intensity_str = pair.split(":")
-        peak = Peak(mz=float(mz_str), intensity=int(float(intensity_str)))
+        try: 
+            mz_str, intensity_str = pair.split(":")
+            peak = Peak(mz=float(mz_str), intensity=int(float(intensity_str)))
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid MSMS format. Expected 'mz:intensity' number pairs.")
         temp_peaks.append(peak)
+
     return MSMS(peaks=temp_peaks)
 
 
@@ -78,7 +94,10 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
         "write-summaries",
         "--output", summary_dir 
     ]
-    subprocess.run(command, check=True)
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as error:
+        raise HTTPException(status_code=500, detail=f"Unexpected error. The Sirius CLI command failed:   {error}")
 
     try:
         os.remove(mgf_file_path) # delete temporary MGF file as it is no longer needed after being passed to sirius command
@@ -87,17 +106,6 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
 
     # absolute path of formulas identified tsv file, should not change
     return "/code/query-results/sirius-summary/formula_identifications.tsv"
-
-    '''
-    Incorrect directory structure, old code
-    # grab the base name of the mgf file, remove .mgf extension
-    base = os.path.splitext(os.path.basename(mgf_file_path))[0] 
-
-    # return the path to the formula_candidates.tsv file
-    # half-hardcoded path, this might need to be changed, TODO test this feature 
-    tsv_path = os.path.join(summary_dir, f"0_{base}_FEATURE1", "formula_candidates.tsv")
-    return tsv_path
-    '''
 
 
 
@@ -118,17 +126,22 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> list[str]:
         pass
     shutil.rmtree("/code/query-results/sirius-summary", ignore_errors=True)
 
+    # if list is epmty, return message
+    if len(compound_list) == 0:
+        compound_list.append("Sirius could not find any matching compounds.")
     return compound_list
 
 
 
-# a post request taking in MSMS and PCM, returning a list of the 10 most probable elements in order of probability
-# responce as a JSON
-@app.post("/")
-def get_compounds(msms_str: str, pcm_str: str) -> list[str]:
-    #TODO
+# a post request taking in MSMS and PCM, returning a list of up to 10 of the most likely compounds in order 
+# response as a JSON, return status code 200 (OK) if successful
+@app.post("/compounds", status_code=200)
+def create_list_of_compounds(msms_str: str, pcm_str: str) -> list[str]:
     msms = parse_msms_string(msms_str)
-    pcm = PCM(pre_cursor_mass=float(pcm_str))
+    try:
+        pcm = PCM(pre_cursor_mass=float(pcm_str))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid precursor mass format. Expected a number.")
     mgf = create_mgf_file(msms, pcm)
     candidates_tsv = run_sirius_CLI(mgf)
     compound_list = parse_sirius_output(candidates_tsv)
