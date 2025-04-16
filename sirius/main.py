@@ -75,7 +75,7 @@ def create_mgf_file(msms: MSMS, pcm: PCM) -> str:
 
 
 
-# takes in the MGF file as argument, returns formula_candidates.tsv file path
+# takes in the MGF file as argument, returns formula_identifications.tsv file path
 def run_sirius_CLI(mgf_file_path: str) -> str:
 # if we want to change output directories, change function signature to:
 # def run_sirius_CLI(mgf_file_path: str, output_dir: str, summary_dir: str) -> str:
@@ -104,7 +104,7 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
     except FileNotFoundError:
         pass
 
-    # absolute path of formulas identified tsv file, should not change
+    # absolute path of formulas identified tsv file, should not change (unless we take in output and summary dir as args)
     return "/code/query-results/sirius-summary/formula_identifications.tsv"
 
 
