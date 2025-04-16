@@ -22,3 +22,5 @@ Important notes:
 	- Exec into docker container with docker exec -it <container_ID> /bin/bash/
 	- Sirius structure command does not work
 	- Pytest passed inside docker image! Use python -m pytest
+	- To pass structure argument in SIRIUS CLI:
+	- formula fingerprint classes structure --database pubchem
