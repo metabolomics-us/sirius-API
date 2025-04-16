@@ -1,7 +1,7 @@
 TODO:
 	- add charge to mgf file as input  
 
-Call Sirius in CLI from Python.
+Call Sirius in CLI from Python. - DONE
 	- parse msms string
 	- create mgf file
 	- run CLI command 
@@ -11,11 +11,11 @@ Make API REST compliant:
 	- cacheability?
 
 
-Push Docker image to ECR.
+Push Docker image to ECR. - DONE
 Set up ECS Task Definition with Docker image.
 Set up ECS Service using the task definition.
 Create Elastic Load Balancer to map domain name.
-Write tests.
+Write tests. - DONE
 
 Important notes:
 	- Boot up docker container for testing using docker run -p 80:80 --name sirius sirius_wrapper
