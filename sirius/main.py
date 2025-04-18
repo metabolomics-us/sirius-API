@@ -128,7 +128,7 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> list[str]:
 
     # if list is epmty, return message
     if len(compound_list) == 0:
-        compound_list.append("Sirius could not find any matching compounds.")
+        compound_list.append("Sirius could not find any matching formulas.")
     return compound_list
 
 
