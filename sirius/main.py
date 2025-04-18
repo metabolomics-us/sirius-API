@@ -89,8 +89,9 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
         "formula",
         "-p", "orbitrap",
         "fingerprint",
-        # "structure", # command does not work?
         "compound-classes",
+        "structures",
+        # "--database", "pubchem" # unsure of effect
         "write-summaries",
         "--output", summary_dir 
     ]
