@@ -126,7 +126,7 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> list[str]:
         pass
     shutil.rmtree("/code/query-results/sirius-summary", ignore_errors=True)
 
-    # if list is epmty, return message
+    # if list is empty, return message
     if len(compound_list) == 0:
         compound_list.append("Sirius could not find any matching formulas.")
     return compound_list
