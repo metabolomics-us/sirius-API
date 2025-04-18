@@ -1,0 +1,22 @@
+original command in the current code:
+sirius --input tests/test.mgf --output /code/query-results/sirius-output formula -p orbitrap fingerprint compound-classes write-summaries --output /code/query-results/sirius-summary
+output:
+C21H42O5 with 14.089
+
+command with pubchem database and structure:
+sirius --input /code/tests/test.mgf --output /code/query-results/sirius-output formula -p orbitrap fingerprint classes structure --database pubchem write-summaries --output /code/query-results/sirius-summary
+output:
+C21H42O5 with 14.089
+
+qtof instead of orbitrap with pubchem:
+sirius --input /code/tests/test.mgf --output /code/query-results/sirius-output formula -p qtof fingerprint classes structure --database pubchem write-summaries --output /code/query-results/sirius-summary
+output:
+C21H42O5 with 14.089
+
+qtof without pubchem:
+sirius --input tests/test.mgf --output /code/query-results/sirius-output formula -p qtof fingerprint compound-classes write-summaries --output /code/query-results/sirius-summary
+output:
+C21H42O5 with 14.089
+
+could not change results with -c <number> for extra candidates
+--feature-quality-summary flag did not work either
