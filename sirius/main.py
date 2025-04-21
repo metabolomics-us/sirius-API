@@ -93,7 +93,8 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
         "structures",
         # "--database", "pubchem" # unsure of effect
         "write-summaries",
-        "--output", summary_dir 
+        "--output", summary_dir,
+        "--top-k-summary=10"
     ]
     try:
         subprocess.run(command, check=True)
@@ -106,7 +107,7 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
         pass
 
     # absolute path of formulas identified tsv file, should not change (unless we take in output and summary dir as args)
-    return "/code/query-results/sirius-summary/formula_identifications.tsv"
+    return "/code/query-results/sirius-summary/formula_identifications_top-10.tsv"
 
 
 
