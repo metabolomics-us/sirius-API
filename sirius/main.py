@@ -4,11 +4,15 @@ import subprocess
 import os
 import shutil
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 
 app = FastAPI()
+
+# mount frontend HTML 
+app.mount("/", StaticFiles(directory="web", html=True), name="static")
 
 class PCM(BaseModel):
     pre_cursor_mass: float
