@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIRIUS Formula Identifier</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>SIRIUS Formula Identifier</h1>
+    <h3>UC Davis Fiehn Lab</h3>
+    <form id="compound-form">
+        <label for="msms-input">MSMS (m/z:intensity pairs):</label><br>
+        <textarea id="msms-input" rows="4" cols="50" placeholder="e.g. 189.4:1.30  159.31:0.613  201.45:2.3  ..."></textarea><br><br>
+        
+        <label for="pcm-input">Precursor Mass:</label><br>
+        <input type="text" id="pcm-input" placeholder="e.g. 301.34"><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+    <hr>
+    <div id="output-container">
+        <label for="output" id="output-label">Predicted Formulas:</label>
+        <div id="output"></div>
+    </div>
+</body>
+</html>
