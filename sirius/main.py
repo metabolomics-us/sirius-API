@@ -11,9 +11,6 @@ from typing import List
 
 app = FastAPI()
 
-# mount frontend HTML 
-app.mount("/", StaticFiles(directory="web", html=True), name="static")
-
 class PCM(BaseModel):
     pre_cursor_mass: float
 
@@ -152,6 +149,11 @@ def create_list_of_compounds(msms_str: str, pcm_str: str) -> list[str]:
     candidates_tsv = run_sirius_CLI(mgf)
     compound_list = parse_sirius_output(candidates_tsv)
     return compound_list
+
+
+
+# mount frontend HTML 
+app.mount("/", StaticFiles(directory="web", html=True), name="static")
 
 
 
