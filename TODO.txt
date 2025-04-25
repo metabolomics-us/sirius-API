@@ -1,14 +1,10 @@
-TODO:
-	- add charge to mgf file as input  
+Javascript still not working properly. Says fetching results... immediately on page startup, also giving 422 error of unprocessable input for some reason.
 
 Call Sirius in CLI from Python. - DONE
 	- parse msms string
 	- create mgf file
 	- run CLI command 
 	- parse output into list of compounds
-
-Make API REST compliant:
-	- cacheability?
 
 
 Push Docker image to ECR. - DONE
