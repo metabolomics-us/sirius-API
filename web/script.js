@@ -1,17 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("compound-form");
     const output = document.getElementById("output");
-    // have it here for now so that it is always triggered without hitting submit or something
-    output.innerHTML = "Fetching results<span class='loading-dots'></span>";
 
     form.addEventListener("submit", async function (event) {
         event.preventDefault();
 
+        output.innerHTML = "Fetching results<span class='loading-dots'></span>";
         const msms = document.getElementById("msms-input").value.trim();
         const pcm = document.getElementById("pcm-input").value.trim();
-
-        // output.textContent = "Loading...";
-        // output.innerHTML = "Fetching results<span class='loading-dots'>...</span>";
 
         try {
             const response = await fetch("/compounds", {
