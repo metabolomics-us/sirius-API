@@ -1,3 +1,4 @@
+# note: the words "compound" and "formula" are used interchangeably in this code/project. 
 import uvicorn
 import tempfile
 import subprocess
@@ -21,7 +22,6 @@ class Peak(BaseModel):
 class MSMS(BaseModel):
     peaks: List[Peak] # list of peaks, each with mz and intensity
 
-'''
 # Can use this as the input payload for the post request so that post requests can be made in JSON format
 class CompoundRequest(BaseModel):
     msms_str: str
@@ -30,7 +30,6 @@ class CompoundRequest(BaseModel):
 # And this as a return type
 class CompoundReturn(BaseModel):
     compounds: list[str]
-'''
 
 
 origins = ["*"]
@@ -51,7 +50,7 @@ def parse_msms_string(msms_str: str) -> MSMS:
         try: 
             mz_str, intensity_str = pair.split(":")
             peak = Peak(mz=float(mz_str), intensity=int(float(intensity_str)))
-        except Exception:
+        except (ValueError, IndexError):
             raise HTTPException(status_code=400, detail="Invalid MSMS format. Expected 'mz:intensity' number pairs.")
         temp_peaks.append(peak)
 
@@ -59,12 +58,11 @@ def parse_msms_string(msms_str: str) -> MSMS:
 
 
 
-# takes in MSMS and PCM and creates a temporary MGF file to be passed to the sirius CLI command 
+# takes in MSMS and PCM objects and creates a temporary MGF file to be passed to the sirius CLI command 
 # returns the file path of that MGF file as a string
 def create_mgf_file(msms: MSMS, pcm: PCM) -> str:
     mgf_content = ["BEGIN IONS"]
     mgf_content.append(f"PEPMASS={pcm.pre_cursor_mass}")
-    # TODO: ADJUST THIS TEMPORARY SOLUTION HARDCODING CHARGE to 1+
     mgf_content.append(f"CHARGE=1+")
     for peak in msms.peaks:
         mgf_content.append(f"{peak.mz} {peak.intensity}")
@@ -136,23 +134,23 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> list[str]:
 
 
 
-# a post request taking in MSMS and PCM, returning a list of up to 10 of the most likely compounds in order 
+# a post request taking in MSMS and PCM (as a compound request), returning a list (compound return) of up to 10 of the most likely compounds/formulas in order 
 # response as a JSON, return status code 200 (OK) if successful
-@app.post("/compounds", status_code=200)
-def create_list_of_compounds(msms_str: str, pcm_str: str) -> list[str]:
-    msms = parse_msms_string(msms_str)
+@app.post("/compounds", status_code=200, response_model=CompoundReturn)
+def create_list_of_compounds(payload: CompoundRequest) -> CompoundReturn:
+    msms = parse_msms_string(payload.msms_str)
     try:
-        pcm = PCM(pre_cursor_mass=float(pcm_str))
-    except Exception:
+        pcm = PCM(pre_cursor_mass=float(payload.pcm_str))
+    except ValueError:
         raise HTTPException(status_code=400, detail="Invalid precursor mass format. Expected a number.")
     mgf = create_mgf_file(msms, pcm)
     candidates_tsv = run_sirius_CLI(mgf)
     compound_list = parse_sirius_output(candidates_tsv)
-    return compound_list
+    return CompoundReturn(compounds=compound_list)
 
 
 
-# mount frontend HTML 
+# mount frontend HTML, CSS, and JS
 app.mount("/", StaticFiles(directory="web", html=True), name="static")
 
 

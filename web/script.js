@@ -13,9 +13,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch("/compounds", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
+                    "Content-Type": "application/json"
                 },
-                body: `msms_str=${encodeURIComponent(msms)}&pcm_str=${encodeURIComponent(pcm)}`
+                body: JSON.stringify({
+                    msms_str: msms,
+                    pcm_str: pcm
+                })
             });
 
             const result = await response.json();
