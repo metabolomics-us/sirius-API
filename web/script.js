@@ -12,9 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const response = await fetch("/compounds", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
                     msms_str: msms,
                     pcm_str: pcm
@@ -24,9 +22,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const result = await response.json();
 
             if (response.ok) {
-                output.textContent = result.join("\n");
+                output.textContent = result.compounds.join("\n");
             } else {
-                output.textContent = "Error: " + result.detail;
+                output.textContent = "Error: " + (result.detail || JSON.stringify(result));
             }
         } catch (error) {
             output.textContent = "Network or server error occurred.";
