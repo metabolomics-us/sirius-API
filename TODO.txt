@@ -1,4 +1,5 @@
 Add scores to result
+Make msms required input on web
 Turn submit button into "wait" and unclickable while we wait for results
 Add charge input (default to +1 if left blank)?
 Electronically denoising the incoming spectra
