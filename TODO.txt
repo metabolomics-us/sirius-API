@@ -1,3 +1,4 @@
+Is it possible to not pass a charge through the MGF file? What about base negative or positive without a number?
 Add scores to result
 Make msms required input on web
 Turn submit button into "wait" and unclickable while we wait for results
