@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 for (let i = 0; i < result.formulas.length; i++) {
                     outputText += result.formulas[i] + '\t\t' + result.sirius_scores[i] + '\n';
                 }
+                output.textContent = outputText;
             } else {
                 output.textContent = "Error: " + (result.detail || JSON.stringify(result));
             }
