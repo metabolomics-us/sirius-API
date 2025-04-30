@@ -1,3 +1,8 @@
+Add scores to result
+Turn submit button into "wait" and unclickable while we wait for results
+Add charge input (default to +1 if left blank)?
+Electronically denoising the incoming spectra
+
 Javascript still not working properly. Says fetching results... immediately on page startup, also giving 422 error of unprocessable input for some reason.
 
 Call Sirius in CLI from Python. - DONE
