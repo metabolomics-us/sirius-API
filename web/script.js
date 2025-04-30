@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("compound-form");
+    const form = document.getElementById("input-form");
     const output = document.getElementById("output");
 
     form.addEventListener("submit", async function (event) {
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const pcm = document.getElementById("pcm-input").value.trim();
 
         try {
-            const response = await fetch("/compounds", {
+            const response = await fetch("/formulas", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
@@ -22,7 +22,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const result = await response.json();
 
             if (response.ok) {
-                output.textContent = result.compounds.join("\n");
+                let outputText = '';
+                for (let i = 0; i < result.formulas.length; i++) {
+                    outputText += result.formulas[i] + '\t\t' + result.sirius_scores[i] + '\n';
+                }
             } else {
                 output.textContent = "Error: " + (result.detail || JSON.stringify(result));
             }

@@ -1,4 +1,3 @@
-# note: the words "compound" and "formula" are used interchangeably in this code/project. 
 import uvicorn
 import tempfile
 import subprocess
@@ -23,13 +22,14 @@ class MSMS(BaseModel):
     peaks: List[Peak] # list of peaks, each with mz and intensity
 
 # Can use this as the input payload for the post request so that post requests can be made in JSON format
-class CompoundRequest(BaseModel):
+class Request(BaseModel):
     msms_str: str
     pcm_str: str
 
 # And this as a return type
-class CompoundReturn(BaseModel):
-    compounds: list[str]
+class ResultLists(BaseModel):
+    formulas: list[str]
+    sirius_scores: list[float]
 
 
 origins = ["*"]
@@ -74,7 +74,7 @@ def create_mgf_file(msms: MSMS, pcm: PCM) -> str:
 
 
 
-# takes in the MGF file as argument, returns formula_identifications.tsv file path
+# takes in the MGF filepath as argument, returns formula_identifications.tsv file path
 def run_sirius_CLI(mgf_file_path: str) -> str:
 # if we want to change output directories, change function signature to:
 # def run_sirius_CLI(mgf_file_path: str, output_dir: str, summary_dir: str) -> str:
@@ -110,15 +110,17 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
 
 
 
-# takes in the formula_candidates.tsv file and parses the compounds into a list of strings
-def parse_sirius_output(formula_candidates_tsv_path: str) -> list[str]:
-    compound_list = []
+# takes in the formula_candidates.tsv file and parses the formulas into a list of strings, and the scores into a list of floats
+def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], list[float]]:
+    formula_list = []
+    sirius_scores_list = []
 
     with open(formula_candidates_tsv_path, "r") as file:
         lines = file.readlines()
         for line in lines[1:11]: # skip header line
             values = line.strip().split("\t") # strip \n and split by tabs, list of values per line
-            compound_list.append(values[1]) # values at index 1 hold molecular formula
+            formula_list.append(values[1]) # values at index 1 hold molecular formula 
+            sirius_scores_list.append(values[6]) # index 6 holds sirius_score
 
     # remove generated files by sirius
     try:
@@ -127,33 +129,39 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> list[str]:
         pass
     shutil.rmtree("/code/query-results/sirius-summary", ignore_errors=True)
 
-    # if list is empty, return message
-    if len(compound_list) == 0:
-        compound_list.append("Sirius could not find any matching formulas.")
-    return compound_list
+    # if list is empty, return error message
+    if len(formula_list) == 0:
+        formula_list.append("Sirius could not find any matching formulas.")
+        sirius_scores_list.append("0")
+
+    return formula_list, sirius_scores_list
 
 
 
-# a post request taking in MSMS and PCM (as a compound request), returning a list (compound return) of up to 10 of the most likely compounds/formulas in order 
+# a post request taking in MSMS and PCM (as a request object), returning a resultLists object with formulas and scores
 # response as a JSON, return status code 200 (OK) if successful
-@app.post("/compounds", status_code=200, response_model=CompoundReturn)
-def create_list_of_compounds(payload: CompoundRequest) -> CompoundReturn:
+@app.post("/formulas", status_code=200, response_model=ResultLists)
+def create_query(payload: Request) -> ResultLists:
+    # if MSMS is not entered, throw error
+    if not payload.msms_str:
+        raise HTTPException(status_code=400, detail="Invalid MSMS. Cannot be empty.")
     msms = parse_msms_string(payload.msms_str)
+
+    # type cast pcm as float, if it fails, throw error
     try:
         pcm = PCM(pre_cursor_mass=float(payload.pcm_str))
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid precursor mass format. Expected a number.")
+
     mgf = create_mgf_file(msms, pcm)
     candidates_tsv = run_sirius_CLI(mgf)
-    compound_list = parse_sirius_output(candidates_tsv)
-    return CompoundReturn(compounds=compound_list)
+    formula_list, sirius_scores_list = parse_sirius_output(candidates_tsv)
+    return ResultLists(formulas=formula_list, sirius_scores=sirius_scores_list)
 
 
 
 # mount frontend HTML, CSS, and JS
 app.mount("/", StaticFiles(directory="web", html=True), name="static")
-
-
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=80, log_level="info")
