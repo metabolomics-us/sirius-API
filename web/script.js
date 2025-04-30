@@ -23,8 +23,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
                 let outputText = '';
-                for (let i = 0; i < result.formulas.length; i++) {
-                    outputText += result.formulas[i] + '\t\t' + result.sirius_scores[i] + '\n';
+                if (result.sirius_scores.length == 0 || result.formulas.length == 0) {
+                    outputText = "Sirius could not find any matching formulas.";
+                } else {
+                    outputText += "Formula".padEnd(25) + "Score\n"; // header
+                    for (let i = 0; i < result.formulas.length; i++) {
+                        const formula = result.formulas[i].padEnd(25);
+                        const score = result.sirius_scores[i];
+                        outputText += formula + score + '\n';
+                    }
                 }
                 output.textContent = outputText;
             } else {

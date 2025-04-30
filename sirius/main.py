@@ -129,11 +129,7 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], li
         pass
     shutil.rmtree("/code/query-results/sirius-summary", ignore_errors=True)
 
-    # if list is empty, return error message
-    if len(formula_list) == 0:
-        formula_list.append("Sirius could not find any matching formulas.")
-        sirius_scores_list.append("0")
-
+    # empty lists will be handled in JS and throw appropriate error ("sirius couldn't find any matches...")
     return formula_list, sirius_scores_list
 
 
