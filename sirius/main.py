@@ -30,6 +30,8 @@ class Request(BaseModel):
 class ResultLists(BaseModel):
     formulas: list[str]
     sirius_scores: list[float]
+    adducts: list[str]
+    precursor_formulas: list[str]
 
 
 origins = ["*"]
@@ -110,10 +112,12 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
 
 
 
-# takes in the formula_candidates.tsv file and parses the formulas into a list of strings, and the scores into a list of floats
-def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], list[float]]:
+# takes in the formula_candidates.tsv file and parses it into result lists
+def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], list[float], list[str], list[str]]:
     formula_list = []
     sirius_scores_list = []
+    adducts_list = []
+    precursor_formulas_list = []
 
     with open(formula_candidates_tsv_path, "r") as file:
         lines = file.readlines()
@@ -121,6 +125,8 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], li
             values = line.strip().split("\t") # strip \n and split by tabs, list of values per line
             formula_list.append(values[1]) # values at index 1 hold molecular formula 
             sirius_scores_list.append(values[6]) # index 6 holds sirius_score
+            adducts_list.append(values[2]) # index 2 holds adducts
+            precursor_formulas_list.append(values[3]) # index 3 holds precursor formulas
 
     # remove generated files by sirius
     try:
@@ -130,7 +136,7 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], li
     shutil.rmtree("/code/query-results/sirius-summary", ignore_errors=True)
 
     # empty lists will be handled in JS and throw appropriate error ("sirius couldn't find any matches...")
-    return formula_list, sirius_scores_list
+    return formula_list, sirius_scores_list, adducts_list, precursor_formulas_list
 
 
 
@@ -151,8 +157,8 @@ def create_query(payload: Request) -> ResultLists:
 
     mgf = create_mgf_file(msms, pcm)
     candidates_tsv = run_sirius_CLI(mgf)
-    formula_list, sirius_scores_list = parse_sirius_output(candidates_tsv)
-    return ResultLists(formulas=formula_list, sirius_scores=sirius_scores_list)
+    formula_list, sirius_scores_list, adducts_list, pcf_list = parse_sirius_output(candidates_tsv)
+    return ResultLists(formulas=formula_list, sirius_scores=sirius_scores_list, adducts=adducts_list, precursor_formulas=pcf_list)
 
 
 

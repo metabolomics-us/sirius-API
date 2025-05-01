@@ -23,14 +23,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
                 let outputText = '';
-                if (result.sirius_scores.length == 0 || result.formulas.length == 0) {
+                if (result.formulas.length == 0) {
                     outputText = "Sirius could not find any matching formulas.";
                 } else {
-                    outputText += "Formula".padEnd(25) + "Score\n"; // header
+                    outputText += "Formula".padEnd(15) + "Score".padEnd(9) + "Adduct".padEnd(12) + "Precursor Formula\n"; // header
                     for (let i = 0; i < result.formulas.length; i++) {
-                        const formula = result.formulas[i].padEnd(25);
-                        const score = result.sirius_scores[i];
-                        outputText += formula + score + '\n';
+                        const formula = result.formulas[i].padEnd(15);
+                        const score = String(result.sirius_scores[i]).padEnd(9);
+                        const adduct = result.adducts[i].padEnd(12);
+                        const precursor_formula = result.precursor_formulas[i];
+                        outputText += formula + score + adduct + precursor_formula + '\n';
                     }
                 }
                 output.textContent = outputText;
