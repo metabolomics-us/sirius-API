@@ -1,11 +1,11 @@
-Is it possible to not pass a charge through the MGF file? What about base negative or positive without a number?
-Add scores to result
-Make msms required input on web
+Write updated tests and teamcity build configuration
 Turn submit button into "wait" and unclickable while we wait for results
-Add charge input (default to +1 if left blank)?
+Add charge input toggle (- or +)
 Electronically denoising the incoming spectra
+Add scores to result - DONE
+Make msms required input on web - DONE
 
-Javascript still not working properly. Says fetching results... immediately on page startup, also giving 422 error of unprocessable input for some reason.
+Javascript still not working properly. Says fetching results... immediately on page startup, also giving 422 error of unprocessable input for some reason. - DONE
 
 Call Sirius in CLI from Python. - DONE
 	- parse msms string
@@ -15,9 +15,9 @@ Call Sirius in CLI from Python. - DONE
 
 
 Push Docker image to ECR. - DONE
-Set up ECS Task Definition with Docker image.
-Set up ECS Service using the task definition.
-Create Elastic Load Balancer to map domain name.
+Set up ECS Task Definition with Docker image. - DONE
+Set up ECS Service using the task definition. - DONE
+Create Elastic Load Balancer to map domain name. - DONE
 Write tests. - DONE
 
 Important notes:
