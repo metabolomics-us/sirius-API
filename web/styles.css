@@ -48,6 +48,33 @@ input[type="text"], textarea {
   font-size: 1rem;
 }
 
+.toggle-group {
+  display: inline-flex;
+  border: 2px solid #acacac;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.toggle-group input[type="radio"] {
+  display: none;
+}
+
+.toggle-group label {
+  padding: 0.6rem 1.2rem;
+  margin: 0;
+  background-color: #f3f3f3;
+  color: rgb(70, 70, 70);
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.toggle-group input[type="radio"]:checked + label {
+  background-color: #d7daf7;
+  color: rgb(0, 0, 0);
+}
+
 button {
   background-color: #1a2a4f;
   color: white;
