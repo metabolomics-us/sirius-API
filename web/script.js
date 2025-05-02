@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
         output.innerHTML = "Fetching results<span class='loading-dots'></span>";
         const msms = document.getElementById("msms-input").value.trim();
         const pcm = document.getElementById("pcm-input").value.trim();
+        const chargeValue = document.querySelector('input[name="charge"]:checked').value;
 
         try {
             const response = await fetch("/formulas", {
@@ -21,7 +22,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
                     msms_str: msms,
-                    pcm_str: pcm
+                    pcm_str: pcm,
+                    charge: chargeValue
                 })
             });
 
