@@ -1,9 +1,15 @@
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("input-form");
     const output = document.getElementById("output");
+    const submitButton = form.querySelector("button[type='submit']");
 
     form.addEventListener("submit", async function (event) {
         event.preventDefault();
+
+        // disable submit button while processing query
+        submitButton.disabled = true;
+        const originalText = submitButton.textContent;
+        submitButton.textContent = "Wait...";
 
         output.innerHTML = "Fetching results<span class='loading-dots'></span>";
         const msms = document.getElementById("msms-input").value.trim();
@@ -42,6 +48,9 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (error) {
             output.textContent = "Network or server error occurred.";
             console.error(error);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
         }
     });
 });
