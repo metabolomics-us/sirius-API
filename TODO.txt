@@ -1,10 +1,10 @@
 Write updated tests and teamcity build configuration
-Turn submit button into "wait" and unclickable while we wait for results
-Add charge input toggle (- or +)
 Electronically denoising the incoming spectra
+
+Turn submit button into "wait" and unclickable while we wait for results - DONE
+Add charge input toggle (- or +) - DONE
 Add scores to result - DONE
 Make msms required input on web - DONE
-
 Javascript still not working properly. Says fetching results... immediately on page startup, also giving 422 error of unprocessable input for some reason. - DONE
 
 Call Sirius in CLI from Python. - DONE
@@ -12,7 +12,6 @@ Call Sirius in CLI from Python. - DONE
 	- create mgf file
 	- run CLI command 
 	- parse output into list of compounds
-
 
 Push Docker image to ECR. - DONE
 Set up ECS Task Definition with Docker image. - DONE
