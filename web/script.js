@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("compound-form");
+    const form = document.getElementById("input-form");
     const output = document.getElementById("output");
 
     form.addEventListener("submit", async function (event) {
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const pcm = document.getElementById("pcm-input").value.trim();
 
         try {
-            const response = await fetch("/compounds", {
+            const response = await fetch("/formulas", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
@@ -22,7 +22,20 @@ document.addEventListener("DOMContentLoaded", function () {
             const result = await response.json();
 
             if (response.ok) {
-                output.textContent = result.compounds.join("\n");
+                let outputText = '';
+                if (result.formulas.length == 0) {
+                    outputText = "Sirius could not find any matching formulas.";
+                } else {
+                    outputText += "Formula".padEnd(15) + "Score".padEnd(9) + "Adduct".padEnd(12) + "Precursor Formula\n"; // header
+                    for (let i = 0; i < result.formulas.length; i++) {
+                        const formula = result.formulas[i].padEnd(15);
+                        const score = String(result.sirius_scores[i]).padEnd(9);
+                        const adduct = result.adducts[i].padEnd(12);
+                        const precursor_formula = result.precursor_formulas[i];
+                        outputText += formula + score + adduct + precursor_formula + '\n';
+                    }
+                }
+                output.textContent = outputText;
             } else {
                 output.textContent = "Error: " + (result.detail || JSON.stringify(result));
             }
