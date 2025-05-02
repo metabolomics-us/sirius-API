@@ -3,6 +3,7 @@ import tempfile
 import subprocess
 import os
 import shutil
+import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
@@ -10,6 +11,7 @@ from pydantic import BaseModel
 from typing import List
 
 app = FastAPI()
+query_lock = asyncio.Lock()
 
 class PCM(BaseModel):
     pre_cursor_mass: float
@@ -143,22 +145,30 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], li
 # a post request taking in MSMS and PCM (as a request object), returning a resultLists object with formulas and scores
 # response as a JSON, return status code 200 (OK) if successful
 @app.post("/formulas", status_code=200, response_model=ResultLists)
-def create_query(payload: Request) -> ResultLists:
-    # if MSMS is not entered, throw error
-    if not payload.msms_str:
-        raise HTTPException(status_code=400, detail="Invalid MSMS. Cannot be empty.")
-    msms = parse_msms_string(payload.msms_str)
+async def create_query(payload: Request) -> ResultLists:
+    # lock so that if we have multiple requests, they wait their turn and do not cause errors
+    async with query_lock:
+        # if MSMS is not entered, throw error
+        if not payload.msms_str:
+            raise HTTPException(status_code=400, detail="Invalid MSMS. Cannot be empty.")
+        msms = parse_msms_string(payload.msms_str)
 
-    # type cast pcm as float, if it fails, throw error
-    try:
-        pcm = PCM(pre_cursor_mass=float(payload.pcm_str))
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid precursor mass format. Expected a number.")
+        # type cast pcm as float, if it fails, throw error
+        try:
+            pcm = PCM(pre_cursor_mass=float(payload.pcm_str))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid precursor mass format. Expected a number.")
 
-    mgf = create_mgf_file(msms, pcm)
-    candidates_tsv = run_sirius_CLI(mgf)
-    formula_list, sirius_scores_list, adducts_list, pcf_list = parse_sirius_output(candidates_tsv)
-    return ResultLists(formulas=formula_list, sirius_scores=sirius_scores_list, adducts=adducts_list, precursor_formulas=pcf_list)
+        mgf = create_mgf_file(msms, pcm)
+        candidates_tsv = run_sirius_CLI(mgf)
+        formula_list, sirius_scores_list, adducts_list, pcf_list = parse_sirius_output(candidates_tsv)
+
+        return ResultLists(
+            formulas=formula_list, 
+            sirius_scores=sirius_scores_list, 
+            adducts=adducts_list, 
+            precursor_formulas=pcf_list
+        )
 
 
 
