@@ -27,6 +27,7 @@ class MSMS(BaseModel):
 class Request(BaseModel):
     msms_str: str
     pcm_str: str
+    charge: bool # 1-positive, 0-negative
 
 # And this as a return type
 class ResultLists(BaseModel):
@@ -64,10 +65,14 @@ def parse_msms_string(msms_str: str) -> MSMS:
 
 # takes in MSMS and PCM objects and creates a temporary MGF file to be passed to the sirius CLI command 
 # returns the file path of that MGF file as a string
-def create_mgf_file(msms: MSMS, pcm: PCM) -> str:
+def create_mgf_file(msms: MSMS, pcm: PCM, charge: bool) -> str:
     mgf_content = ["BEGIN IONS"]
     mgf_content.append(f"PEPMASS={pcm.pre_cursor_mass}")
-    mgf_content.append(f"CHARGE=1+")
+    if charge:
+        mgf_content.append(f"CHARGE=1+")
+    else:
+        mgf_content.append(f"CHARGE=1-")
+
     for peak in msms.peaks:
         mgf_content.append(f"{peak.mz} {peak.intensity}")
     mgf_content.append("END IONS")
@@ -159,7 +164,7 @@ async def create_query(payload: Request) -> ResultLists:
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid precursor mass format. Expected a number.")
 
-        mgf = create_mgf_file(msms, pcm)
+        mgf = create_mgf_file(msms, pcm, payload.charge)
         candidates_tsv = run_sirius_CLI(mgf)
         formula_list, sirius_scores_list, adducts_list, pcf_list = parse_sirius_output(candidates_tsv)
 
