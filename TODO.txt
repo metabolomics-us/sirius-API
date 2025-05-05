@@ -1,4 +1,4 @@
-Write updated tests and teamcity build configuration
+Write updated tests and teamcity build configuration - DONE
 Electronically denoising the incoming spectra
 
 Turn submit button into "wait" and unclickable while we wait for results - DONE
