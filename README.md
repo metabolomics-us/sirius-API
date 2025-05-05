@@ -1,2 +1,2 @@
 # Sirius-API
-The Sirius API Wrapper backend for LCB
+The Sirius API Wrapper for LCB
