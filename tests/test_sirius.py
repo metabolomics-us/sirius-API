@@ -1,23 +1,20 @@
-from fastapi.testclient import TestClient
-from sirius.main import app
+import requests
 
-client = TestClient(app)
-
+# live API test
 def test_valid_post_200():
     # Arbitrary test data:
     msms_str = "189.48956:1.9 283.62076:3.4 301.22977:66.3 311.08008:1.3 399.99106:2.3"
     pcm_str = "413.26611887841"
     charge = True
 
-    # post request
-    response = client.post(
-        "/formulas",
-        json={
-            "msms_str": msms_str,
-            "pcm_str": pcm_str,
-            "charge": charge
-        }
-    )
+    url = "https://sirius.metabolomics.us/formulas"
+    payload = {
+        "msms_str": msms_str,
+        "pcm_str": pcm_str,
+        "charge": charge
+    }
+
+    response = requests.post(url, json=payload)
 
     # HTTP response code should be 200 - OK
     assert response.status_code == 200
