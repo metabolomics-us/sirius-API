@@ -1,6 +1,6 @@
 import requests
+# these tests are conducted on the live API
 
-# live API test
 def test_valid_post_200():
     # Arbitrary test data:
     msms_str = "189.48956:1.9 283.62076:3.4 301.22977:66.3 311.08008:1.3 399.99106:2.3"
@@ -34,27 +34,41 @@ def test_valid_post_200():
     assert all(isinstance(pcf, str) for pcf in data["precursor_formulas"])
 
  
-'''
 def test_invalid_PCM_input():
+    # Arbitrary test data:
     msms_str = "189.48956:1.9 283.62076:3.4 301.22977:66.3 311.08008:1.3 399.99106:2.3"
-    pcm_str = "fail"
+    pcm_str = "chararacters"
+    charge = True
 
-    # post request
-    response = client.post("/formulas", params={"msms_str": msms_str, "pcm_str": pcm_str, "charge": 0})
+    url = "https://sirius.metabolomics.us/formulas"
+    payload = {
+        "msms_str": msms_str,
+        "pcm_str": pcm_str,
+        "charge": charge
+    }
+
+    response = requests.post(url, json=payload)
 
     # HTTP response code should be 400 - client error
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid precursor mass format. Expected a number."
-
+    
 
 
 def test_invalid_MSMS_input():
-    msms_str = "should:fail"
-    pcm_str = "413.26611887841"
+    # Arbitrary test data:
+    msms_str = "characters for example"
+    pcm_str = "1.0"
+    charge = False
 
-    # post request
-    response = client.post("/formulas", params={"msms_str": msms_str, "pcm_str": pcm_str, "charge": 1})
+    url = "https://sirius.metabolomics.us/formulas"
+    payload = {
+        "msms_str": msms_str,
+        "pcm_str": pcm_str,
+        "charge": charge
+    }
 
+    response = requests.post(url, json=payload)
     # HTTP response code should be 400 - client error
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid MSMS format. Expected 'mz:intensity' number pairs."
@@ -62,13 +76,19 @@ def test_invalid_MSMS_input():
 
 
 def test_empty_MSMS_input():
+    # Arbitrary test data:
     msms_str = ""
-    pcm_str = "413.26611887841"
+    pcm_str = "1.0"
+    charge = False
 
-    # post request
-    response = client.post("/formulas", params={"msms_str": msms_str, "pcm_str": pcm_str, "charge": 1})
+    url = "https://sirius.metabolomics.us/formulas"
+    payload = {
+        "msms_str": msms_str,
+        "pcm_str": pcm_str,
+        "charge": charge
+    }
 
+    response = requests.post(url, json=payload)
     # HTTP response code should be 400 - client error
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid MSMS. Cannot be empty."
-'''
