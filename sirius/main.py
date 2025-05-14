@@ -3,7 +3,7 @@ import tempfile
 import subprocess
 import os
 import shutil
-import asyncio
+#import asyncio
 import secrets
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from typing import List
 
 app = FastAPI()
-query_lock = asyncio.Lock()
+#query_lock = asyncio.Lock()
 
 class PCM(BaseModel):
     pre_cursor_mass: float
@@ -137,13 +137,7 @@ def parse_sirius_output(formula_candidates_tsv_path: str, query_id: int) -> tupl
             adducts_list.append(values[2]) # index 2 holds adducts
             precursor_formulas_list.append(values[3]) # index 3 holds precursor formulas
 
-    # remove generated files and directories
-    # try:
-        # os.remove(f"/code/query-results/{query_id}/sirius-output.sirius")
-    # except FileNotFoundError:
-        # pass
-
-    # delete entire query_id folder
+    # delete entire query_id folder that was generated
     shutil.rmtree(f"/code/query-results/{query_id}", ignore_errors=True)
 
     # empty lists will be handled in JS and throw appropriate error ("sirius couldn't find any matches...")
