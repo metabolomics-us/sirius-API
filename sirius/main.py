@@ -86,6 +86,7 @@ def create_mgf_file(msms: MSMS, pcm: PCM, charge: bool) -> str:
 
 # takes in the MGF filepath as argument, returns formula_identifications.tsv file path
 def run_sirius_CLI(mgf_file_path: str, query_id: int) -> str:
+    os.mkdir(f"/code/query-results/{query_id}")
     output_dir = f"/code/query-results/{query_id}/sirius-output"
     summary_dir = f"/code/query-results/{query_id}/sirius-summary"
 
@@ -170,7 +171,7 @@ def create_query(payload: Request) -> ResultLists:
 
     mgf = create_mgf_file(msms, pcm, payload.charge)
     candidates_tsv = run_sirius_CLI(mgf, query_id)
-    formula_list, sirius_scores_list, adducts_list, pcf_list = parse_sirius_output(candidates_tsv)
+    formula_list, sirius_scores_list, adducts_list, pcf_list = parse_sirius_output(candidates_tsv, query_id)
 
     return ResultLists(
         formulas=formula_list, 
