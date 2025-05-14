@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (response.ok) {
                 let outputText = '';
                 if (result.formulas.length == 0) {
-                    outputText = "Sirius could not find any matching formulas.";
+                    outputText = "SIRIUS could not find any matching formulas.";
                 } else {
                     outputText += "Formula".padEnd(15) + "Score".padEnd(9) + "Adduct".padEnd(12) + "Precursor Formula\n"; // header
                     for (let i = 0; i < result.formulas.length; i++) {
