@@ -4,6 +4,7 @@ import subprocess
 import os
 import shutil
 import asyncio
+import secrets
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
@@ -84,11 +85,9 @@ def create_mgf_file(msms: MSMS, pcm: PCM, charge: bool) -> str:
 
 
 # takes in the MGF filepath as argument, returns formula_identifications.tsv file path
-def run_sirius_CLI(mgf_file_path: str) -> str:
-# if we want to change output directories, change function signature to:
-# def run_sirius_CLI(mgf_file_path: str, output_dir: str, summary_dir: str) -> str:
-    output_dir = "/code/query-results/sirius-output"
-    summary_dir = "/code/query-results/sirius-summary"
+def run_sirius_CLI(mgf_file_path: str, query_id: int) -> str:
+    output_dir = f"/code/query-results/{query_id}/sirius-output"
+    summary_dir = f"/code/query-results/{query_id}/sirius-summary"
 
     command = [
         "sirius",
@@ -104,6 +103,7 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
         "--output", summary_dir,
         "--top-k-summary=10"
     ]
+
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as error:
@@ -114,13 +114,14 @@ def run_sirius_CLI(mgf_file_path: str) -> str:
     except FileNotFoundError:
         pass
 
-    # absolute path of formulas identified tsv file, should not change (unless we take in output and summary dir as args)
-    return "/code/query-results/sirius-summary/formula_identifications_top-10.tsv"
+    # absolute path of formula_identifications.tsv file
+    return f"{summary_dir}/formula_identifications_top-10.tsv"
+
 
 
 
 # takes in the formula_candidates.tsv file and parses it into result lists
-def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], list[float], list[str], list[str]]:
+def parse_sirius_output(formula_candidates_tsv_path: str, query_id: int) -> tuple[list[str], list[float], list[str], list[str]]:
     formula_list = []
     sirius_scores_list = []
     adducts_list = []
@@ -135,12 +136,14 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], li
             adducts_list.append(values[2]) # index 2 holds adducts
             precursor_formulas_list.append(values[3]) # index 3 holds precursor formulas
 
-    # remove generated files by sirius
-    try:
-        os.remove("/code/query-results/sirius-output.sirius")
-    except FileNotFoundError:
-        pass
-    shutil.rmtree("/code/query-results/sirius-summary", ignore_errors=True)
+    # remove generated files and directories
+    # try:
+        # os.remove(f"/code/query-results/{query_id}/sirius-output.sirius")
+    # except FileNotFoundError:
+        # pass
+
+    # delete entire query_id folder
+    shutil.rmtree(f"/code/query-results/{query_id}", ignore_errors=True)
 
     # empty lists will be handled in JS and throw appropriate error ("sirius couldn't find any matches...")
     return formula_list, sirius_scores_list, adducts_list, precursor_formulas_list
@@ -150,30 +153,31 @@ def parse_sirius_output(formula_candidates_tsv_path: str) -> tuple[list[str], li
 # a post request taking in MSMS and PCM (as a request object), returning a resultLists object with formulas and scores
 # response as a JSON, return status code 200 (OK) if successful
 @app.post("/formulas", status_code=200, response_model=ResultLists)
-async def create_query(payload: Request) -> ResultLists:
-    # lock so that if we have multiple requests, they wait their turn and do not cause errors
-    async with query_lock:
-        # if MSMS is not entered, throw error
-        if not payload.msms_str:
-            raise HTTPException(status_code=400, detail="Invalid MSMS. Cannot be empty.")
-        msms = parse_msms_string(payload.msms_str)
+def create_query(payload: Request) -> ResultLists:
+    # create query_id for file paths
+    query_id = secrets.token_hex(16) # 32 character hex ID (16 bytes = 32 char)
 
-        # type cast pcm as float, if it fails, throw error
-        try:
-            pcm = PCM(pre_cursor_mass=float(payload.pcm_str))
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid precursor mass format. Expected a number.")
+    # if MSMS is not entered, throw error
+    if not payload.msms_str:
+        raise HTTPException(status_code=400, detail="Invalid MSMS. Cannot be empty.")
+    msms = parse_msms_string(payload.msms_str)
 
-        mgf = create_mgf_file(msms, pcm, payload.charge)
-        candidates_tsv = run_sirius_CLI(mgf)
-        formula_list, sirius_scores_list, adducts_list, pcf_list = parse_sirius_output(candidates_tsv)
+    # type cast pcm as float, if it fails, throw error
+    try:
+        pcm = PCM(pre_cursor_mass=float(payload.pcm_str))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid precursor mass format. Expected a number.")
 
-        return ResultLists(
-            formulas=formula_list, 
-            sirius_scores=sirius_scores_list, 
-            adducts=adducts_list, 
-            precursor_formulas=pcf_list
-        )
+    mgf = create_mgf_file(msms, pcm, payload.charge)
+    candidates_tsv = run_sirius_CLI(mgf, query_id)
+    formula_list, sirius_scores_list, adducts_list, pcf_list = parse_sirius_output(candidates_tsv)
+
+    return ResultLists(
+        formulas=formula_list, 
+        sirius_scores=sirius_scores_list, 
+        adducts=adducts_list, 
+        precursor_formulas=pcf_list
+    )
 
 
 
