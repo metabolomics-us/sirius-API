@@ -2,8 +2,8 @@
 The Sirius API wrapper for LC-BinBase 
 
 ## Starting the Service
-Build the docker image or pull it from ECR, and then run
-    - docker run -p 80:80 --name sirius <image-name>
+Build the docker image or pull it from ECR, and then run  
+    - `docker run -p 80:80 --name sirius <image-name>`
 
 ### Main citations
 
