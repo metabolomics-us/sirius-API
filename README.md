@@ -1,7 +1,11 @@
 # Sirius-API
 The Sirius API wrapper for LC-BinBase 
 
-## Main citations
+## Starting the Service
+Build the docker image or pull it from ECR, and then run
+    - docker run -p 80:80 --name sirius <image-name>
+
+### Main citations
 
 Kai Dührkop, Markus Fleischauer, Marcus Ludwig, Alexander A. Aksenov, Alexey V. Melnik, Marvin Meusel, Pieter C. Dorrestein, Juho Rousu and Sebastian Böcker.
 [SIRIUS 4: Turning tandem mass spectra into metabolite structure information.](https://doi.org/10.1038/s41592-019-0344-8)
